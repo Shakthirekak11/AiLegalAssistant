@@ -19,7 +19,7 @@ an AI assistant to help with legal queries, with an RAG model trained on the Ind
 
 ## Getting Started
 
-AI Legal Assistant has been deployed here:
+AI Legal Assistant has been deployed here: https://ailegalassistant.streamlit.app/
 
 **HOW TO USE:**
 
