@@ -273,7 +273,7 @@ def generate_legal_document(prompt):
             st.download_button(
                 label="Download Generated Document",
                 data=file,
-                file_name=file_name,
+                file_name=file_name+".docx",
                 mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
             )
 
