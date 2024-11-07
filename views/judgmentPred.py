@@ -6,6 +6,7 @@ from docx import Document as DocxDocument  # For Word documents
 from PIL import Image  # For image handling
 import pytesseract  # For OCR
 import numpy as np
+import tensorflow as tf
 from tensorflow import keras
 from keras.layers import GRU, Dense, Dropout, Input, Masking, Bidirectional
 from keras.models import Model
@@ -30,11 +31,11 @@ class AttentionLayer(keras.layers.Layer):
         super(AttentionLayer, self).build(input_shape)
 
     def call(self, x):
-        u_t = tanh(K.dot(x, self.W) + self.b)
-        a = K.dot(u_t, self.u)
-        a = K.softmax(K.squeeze(a, -1))
+        u_t = tanh(tf.linalg.matmul(x, self.W) + self.b)
+        a = tf.linalg.matmul(u_t, self.u)
+        a = tf.nn.softmax(K.squeeze(a, -1))
         weighted_input = x * K.expand_dims(a)
-        return K.sum(weighted_input, axis=1)
+        return tf.reduce_sum(weighted_input, axis=1)
 
     def compute_output_shape(self, input_shape):
         # Output shape is (batch_size, units) after summing along the time dimension
