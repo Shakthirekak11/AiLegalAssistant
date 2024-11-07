@@ -134,5 +134,5 @@ if st.session_state.current_chat:
 
 else:
     st.title("")
-    st.markdown("<h1 style='text-align: center;'>⚖ AI Legal Assistant ⚖</h1>", unsafe_allow_html=True)
+    st.markdown("<h1 style='text-align: center;'>⚖️ AI Legal Assistant ⚖️</h1>", unsafe_allow_html=True)
     st.write("Please create or select a chat from the sidebar.")
