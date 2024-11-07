@@ -36,6 +36,10 @@ class AttentionLayer(keras.layers.Layer):
         weighted_input = x * K.expand_dims(a)
         return K.sum(weighted_input, axis=1)
 
+    def compute_output_shape(self, input_shape):
+        # Output shape is (batch_size, units) after summing along the time dimension
+        return (input_shape[0], self.units)
+
 # Model loading and building function for Bi-GRU
 def load_bi_gru_model():
     input_text = Input(shape=(None, 768), dtype='float32', name='text')
