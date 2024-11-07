@@ -10,6 +10,7 @@ from tensorflow import keras
 from keras.layers import GRU, Dense, Dropout, Input, Masking, Bidirectional
 from keras.models import Model
 from keras.activations import tanh
+from keras.layers import Dot
 from keras import backend as K
 
 # Set API key for LLM
@@ -29,8 +30,8 @@ class AttentionLayer(keras.layers.Layer):
         super(AttentionLayer, self).build(input_shape)
 
     def call(self, x):
-        u_t = tanh(K.dot(x, self.W) + self.b)
-        a = K.dot(u_t, self.u)
+        u_t = tanh(Dot(x, self.W) + self.b)
+        a = Dot(u_t, self.u)
         a = K.softmax(K.squeeze(a, -1))
         weighted_input = x * K.expand_dims(a)
         return K.sum(weighted_input, axis=1)
