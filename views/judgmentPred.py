@@ -53,7 +53,7 @@ def load_bi_gru_model():
 bi_gru_model = load_bi_gru_model()
 
 # Streamlit interface
-st.markdown("<h1 style='text-align: center;'>⚖ AI Legal Assistant ⚖</h1>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align: center;'>⚖️ AI Legal Assistant ⚖️</h1>", unsafe_allow_html=True)
 st.write(" ")
 st.subheader("👨‍⚖ Judgment Predictor", divider="grey")
 st.write(" ")
