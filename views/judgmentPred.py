@@ -38,7 +38,7 @@ class AttentionLayer(keras.layers.Layer):
 
     def compute_output_shape(self, input_shape):
         # Output shape is (batch_size, units) after summing along the time dimension
-        return (input_shape[0], self.units)
+        return (input_shape[0], self.attention_dim)
 
 # Model loading and building function for Bi-GRU
 def load_bi_gru_model():
