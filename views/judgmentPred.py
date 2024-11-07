@@ -17,7 +17,7 @@ mistral_llm = Together(model="mistralai/Mixtral-8x22B-Instruct-v0.1", temperatur
 
 # Attention Layer for the Bi-GRU model
 class AttentionLayer(keras.layers.Layer):
-    def _init_(self, attention_dim=200, **kwargs):
+    def __init__(self, attention_dim=200, **kwargs):
         super(AttentionLayer, self)._init_(**kwargs)
         self.attention_dim = attention_dim
 
