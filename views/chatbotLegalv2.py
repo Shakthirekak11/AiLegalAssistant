@@ -5,25 +5,35 @@ from langchain.chains import ConversationChain
 from langchain.chains.conversation.memory import ConversationEntityMemory
 from langchain.memory.prompt import ENTITY_MEMORY_CONVERSATION_TEMPLATE
 from langchain_community.embeddings import HuggingFaceEmbeddings
-from langchain_community.vectorstores import FAISS
+from langchain.prompts import PromptTemplate
+from langchain_openai import ChatOpenAI
 from langchain_together import Together
 
 # Initialize Redis client with Upstash URL and token
-UPSTASH_REDIS_REST_URL='https://equal-dodo-25065.upstash.io'
-UPSTASH_REDIS_REST_TOKEN='AWHpAAIjcDFhNjVkNmMzYTkxYTk0MDJjOGY0MTZkZjQ1NWJiZDNjMHAxMA'
+UPSTASH_REDIS_REST_URL = 'https://equal-dodo-25065.upstash.io'
+UPSTASH_REDIS_REST_TOKEN = 'AWHpAAIjcDFhNjVkNmMzYTkxYTk0MDJjOGY0MTZkZjQ1NWJiZDNjMHAxMA'
 redis_client = Redis(url=UPSTASH_REDIS_REST_URL, token=UPSTASH_REDIS_REST_TOKEN)
 
 # Set API key for legal LLM
-# the API key has been split and concatenated to bypass GitHub API screening
-a='bb1b45095f0459a'
-b='f3dc33743c083e9'
-c='d8ae15be886fd'
-d='859a6a049a'
-e='826a1f8746c'
-api_key = a+b+c+d+e
+api_key = 'bb1b45095f0459af3dc33743c083e9d8ae15be886fd859a6a049a826a1f8746c'
 
 # Initialize the Mistral LLM
 mistral_llm = Together(model="mistralai/Mixtral-8x22B-Instruct-v0.1", temperature=0.5, max_tokens=1024, together_api_key=api_key)
+
+# Check if a question is legal-related
+def is_legal_related(query):
+    prompt_template = PromptTemplate(
+        input_variables=["query"],
+        template="""
+        Decide if the following question is legal-related or not. Respond with "Yes" if it is legal-related, or "No" if it is not.
+
+        Question: {query}
+        """
+    )
+    prompt = prompt_template.format(query=query)
+    response = mistral_llm(prompt)
+    response_text = response.content.strip()
+    return response_text.lower() == "yes"
 
 # Load Chats
 def load_chat(chat_name):
@@ -31,12 +41,12 @@ def load_chat(chat_name):
     if chat_data:
         data = json.loads(chat_data)
         entity_memory = ConversationEntityMemory(
-            llm = mistral_llm, k=data.get('k', 50)
+            llm=mistral_llm, k=data.get('k', 50)
         )
         for i in range(len(data["past"])):
             entity_memory.save_context({"input": data["past"][i]}, {"output": data["generated"][i]})
         return {"generated": data["generated"], "past": data["past"], "entity_memory": entity_memory}
-    return {"generated": [], "past": [], "entity_memory": ConversationEntityMemory(llm = mistral_llm, k=50)}
+    return {"generated": [], "past": [], "entity_memory": ConversationEntityMemory(llm=mistral_llm, k=50)}
 
 # Save Chats
 def save_chat(chat_name, chat_data):
@@ -51,7 +61,7 @@ if "input_text" not in st.session_state:
 # Create New Chats
 def create_new_chat():
     new_chat_name = f"Chat {len(list(redis_client.keys('*'))) + 1}"
-    chat_data = {"generated": [], "past": [], "entity_memory": ConversationEntityMemory(llm = mistral_llm, k=50)}
+    chat_data = {"generated": [], "past": [], "entity_memory": ConversationEntityMemory(llm=mistral_llm, k=50)}
     save_chat(new_chat_name, chat_data)
     st.session_state.current_chat = new_chat_name
     st.session_state.input_text = ""
@@ -73,16 +83,15 @@ def process_input():
             prompt=ENTITY_MEMORY_CONVERSATION_TEMPLATE,
             memory=current_chat["entity_memory"]
         )
-        # Load embeddings for Indian Penal Code and similarity search
-        embeddings = HuggingFaceEmbeddings(model_name="law-ai/InLegalBERT")
-        db = FAISS.load_local("ipc_embed_db", embeddings, allow_dangerous_deserialization=True)
-        db_retriever = db.as_retriever(search_type="similarity", search_kwargs={"k": 3})
-        docs = db_retriever.get_relevant_documents(user_input)
-        response = conversation.run(input=user_input + "\n\n" + str(docs))
+
+        # Run conversation with user input only
+        response = conversation.run(input=user_input)
+
+        # Update conversation history and save it
         current_chat["past"].append(user_input)
         current_chat["generated"].append(response)
         save_chat(st.session_state.current_chat, current_chat)
-        
+
     st.session_state.input_text = ""
 
 # Sidebar with chat options
@@ -91,18 +100,13 @@ with st.sidebar:
     if st.button("Create New Chat"):
         create_new_chat()
 
-    chat_keys = redis_client.keys('*')
-    sorted_chat_keys = sorted(chat_keys, key=lambda x: int(x.split()[1]), reverse=True)
-
-    for chat_name in sorted_chat_keys:
+    for chat_name in redis_client.keys('*'):
         if st.button(chat_name):
-            st.session_state.current_chat = chat_name
-            st.session_state.input_text = ""
+            switch_chat(chat_name)
 
 # Main UI for chat interface
 if st.session_state.current_chat:
-    st.markdown("<h1 style='text-align: center;'>⚖️ AI Legal Assistant ⚖️</h1>", unsafe_allow_html=True)
-    st.write(" ")
+    st.markdown("<h1 style='text-align: center;'>⚖ AI Legal Assistant ⚖</h1>", unsafe_allow_html=True)
     st.markdown(f"{st.session_state.current_chat}")
 
     # Display conversation history in a scrollable container
@@ -115,7 +119,7 @@ if st.session_state.current_chat:
                 user_message.write(f"{current_chat['past'][i]}")
                 ai_message.write(f"{current_chat['generated'][i]}")
         else:
-            st.write("_No conversation history yet._")
+            st.write("No conversation history yet.")
 
     # Input field for user text
     st.text_input(
@@ -126,7 +130,9 @@ if st.session_state.current_chat:
         label_visibility="hidden",
         on_change=process_input
     )
+    st.write("")
 
 else:
-    st.markdown("<h1 style='text-align: center;'>⚖️ AI Legal Assistant ⚖️</h1>", unsafe_allow_html=True)
+    st.title("")
+    st.markdown("<h1 style='text-align: center;'>⚖ AI Legal Assistant ⚖</h1>", unsafe_allow_html=True)
     st.write("Please create or select a chat from the sidebar.")
