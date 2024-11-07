@@ -106,7 +106,7 @@ with st.sidebar:
 
 # Main UI for chat interface
 if st.session_state.current_chat:
-    st.markdown("<h1 style='text-align: center;'>⚖ AI Legal Assistant ⚖</h1>", unsafe_allow_html=True)
+    st.markdown("<h1 style='text-align: center;'>⚖️ AI Legal Assistant ⚖️</h1>", unsafe_allow_html=True)
     st.markdown(f"{st.session_state.current_chat}")
 
     # Display conversation history in a scrollable container
