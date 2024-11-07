@@ -6,13 +6,10 @@ from docx import Document as DocxDocument  # For Word documents
 from PIL import Image  # For image handling
 import pytesseract  # For OCR
 import numpy as np
-import tensorflow as tf
-from tensorflow import keras
+import keras
 from keras.layers import GRU, Dense, Dropout, Input, Masking, Bidirectional
 from keras.models import Model
-from keras.activations import tanh
-from keras.layers import Dot
-from keras import backend as K
+import tensorflow as tf  # Import TensorFlow for math operations
 
 # Set API key for LLM
 api_key = 'bb1b45095f0459af3dc33743c083e9d8ae15be886fd859a6a049a826a1f8746c'
@@ -20,26 +17,24 @@ mistral_llm = Together(model="mistralai/Mixtral-8x22B-Instruct-v0.1", temperatur
 
 # Attention Layer for the Bi-GRU model
 class AttentionLayer(keras.layers.Layer):
-    def __init__(self, attention_dim=200, **kwargs):  # Use __init__ instead of _init_
-        super(AttentionLayer, self).__init__(**kwargs)
+    def _init_(self, attention_dim=200, **kwargs):
+        super(AttentionLayer, self)._init_(**kwargs)
         self.attention_dim = attention_dim
 
     def build(self, input_shape):
+        # Initialize weights for the attention mechanism
         self.W = self.add_weight(shape=(input_shape[-1], self.attention_dim), initializer="glorot_uniform", trainable=True)
         self.b = self.add_weight(shape=(self.attention_dim,), initializer="zeros", trainable=True)
         self.u = self.add_weight(shape=(self.attention_dim, 1), initializer="glorot_uniform", trainable=True)
         super(AttentionLayer, self).build(input_shape)
 
     def call(self, x):
-        u_t = tanh(tf.linalg.matmul(x, self.W) + self.b)
+        # Compute attention scores
+        u_t = tf.math.tanh(tf.linalg.matmul(x, self.W) + self.b)  # Use tf.math.tanh and tf.linalg.matmul
         a = tf.linalg.matmul(u_t, self.u)
-        a = tf.nn.softmax(K.squeeze(a, -1))
-        weighted_input = x * K.expand_dims(a)
+        a = tf.nn.softmax(tf.squeeze(a, -1))
+        weighted_input = x * tf.expand_dims(a, -1)  # Ensure dimensions match
         return tf.reduce_sum(weighted_input, axis=1)
-
-    def compute_output_shape(self, input_shape):
-        # Output shape is (batch_size, units) after summing along the time dimension
-        return (input_shape[0], self.attention_dim)
 
 # Model loading and building function for Bi-GRU
 def load_bi_gru_model():
@@ -52,14 +47,13 @@ def load_bi_gru_model():
     dense_out = Dense(30, activation='relu')(dropout_out)
     final_out = Dense(1, activation='sigmoid')(dense_out)
     model = Model(inputs=input_text, outputs=final_out)
-    # model.load_weights('path_to_your_model_weights.h5')  # Load trained weights if available
     return model
 
 # Initialize the Bi-GRU model
 bi_gru_model = load_bi_gru_model()
 
 # Streamlit interface
-st.markdown("<h1 style='text-align: center;'>⚖️ AI Legal Assistant ⚖️</h1>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align: center;'>⚖ AI Legal Assistant ⚖</h1>", unsafe_allow_html=True)
 st.write(" ")
 st.subheader("👨‍⚖ Judgment Predictor", divider="grey")
 st.write(" ")
