@@ -16,7 +16,7 @@ project_1_page = st.Page(
     icon=":material/online_prediction:",
 )
 project_2_page = st.Page(
-    "views/temp_gen.py",
+    "views/docGen.py",
     title="Legal Doc Generator",
     icon=":material/description:",
 )
