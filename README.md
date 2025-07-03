@@ -27,10 +27,6 @@ AI Legal Assistant has been deployed here: https://ailegalassistant.streamlit.ap
 2. Ask Legal Questions: Ask any legal query to AI Legal Assistant's Chat Bot.
 3. Create Legal Documents: AI Legal Assistant can generate content for legal documents, extracting information from your prompts.
 
-## Demo Video
-[![Watch the video](https://img.youtube.com/vi/TFs_JSMsnDc/maxresdefault.jpg)](https://youtu.be/TFs_JSMsnDc)
-
-### [Watch this video on YouTube](https://youtu.be/TFs_JSMsnDc)
 
 ## Creators
 V Kamal Jerome | Shakthireka Karthikeyan | Kopika M | Deepesh Raj AY | Ashirvad Janardanan V
